@@ -1,21 +1,22 @@
-package sms
+package email
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	assert "main/internal/assertations"
 	"os"
+	"strconv"
 	"strings"
 )
 
-const CSVRowLen = 4
+const CSVRowLen = 3
 
-func CheckSMSvalid(data SMSData) bool {
-
+func checkEmailValid(data EmailData) bool {
 	if assert.Alpha2Map[data.Country] == "" {
 		return false
-	} else if !assert.CheckValueInArray(data.Provider, assert.Providers[:]) {
+	} else if !assert.CheckValueInArray(data.Provider, assert.EmailProviders[:]) {
 		return false
 	}
 	return true
@@ -44,28 +45,40 @@ func readFile(path string) ([]string, error) {
 
 }
 
-func GetSMSDataSlice(path string) ([]SMSData, error) {
+func getEmailData(params []string) (EmailData, error) {
+	DeliveryTime, err := strconv.Atoi(params[2])
+	if err != nil {
+		return EmailData{}, errors.New("bad data format")
+	}
+	return EmailData{
+		Country:      params[0],
+		Provider:     params[1],
+		DeliveryTime: DeliveryTime,
+	}, nil
+
+}
+
+func GetEmailDataSlice(path string) ([]EmailData, error) {
 	rows, err := readFile(path)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
 	}
-	var result []SMSData
+	var result []EmailData
 	for _, row := range rows {
 		params := strings.Split(row, ";")
 		if len(params) != CSVRowLen {
 			continue
 		}
-		sms := SMSData{
-			Country:      params[0],
-			Bandwith:     params[1],
-			ResponseTime: params[2],
-			Provider:     params[3],
-		}
-		if !CheckSMSvalid(sms) {
+		email, err := getEmailData(params)
+		if err != nil {
+			log.Printf(err.Error())
 			continue
 		}
-		result = append(result, sms)
+		if !checkEmailValid(email) {
+			continue
+		}
+		result = append(result, email)
 	}
 	return result, nil
 }

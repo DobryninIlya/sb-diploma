@@ -1,2 +1,4 @@
 github.com/biter777/countries v1.6.4 h1:Ss0Uqd7gnMBhjrqz9dMlMXT4fjVufIg526uGJY7B5/0=
 github.com/biter777/countries v1.6.4/go.mod h1:1HSpZ526mYqKJcpT5Ti1kcGQ0L0SrXWIaptUWjFfv2E=
+github.com/go-chi/chi v1.5.4 h1:QHdzF2szwjqVV4wmByUnTcsbIg7UGaQ0tPF2t5GcAIs=
+github.com/go-chi/chi v1.5.4/go.mod h1:uaf8YgoFazUOkPBG7fxPftUylNumIev9awIWOENIuEg=
