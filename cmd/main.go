@@ -43,5 +43,4 @@ func (a *App) run() {
 func main() {
 	var app = NewApp()
 	app.run()
-
 }

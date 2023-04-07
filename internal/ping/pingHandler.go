@@ -2,14 +2,12 @@ package ping
 
 import (
 	"encoding/json"
-	"fmt"
 	conv "main/internal/json_convertation"
 	"net/http"
 )
 
 func New() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Ping handler")
 		structura, err := conv.GetResultData()
 		if err != nil {
 			answer := conv.ResultTErr{
@@ -27,9 +25,10 @@ func New() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result, _ := json.Marshal(answer)
-		w.WriteHeader(http.StatusOK)
+		print(result)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Write(result)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(result))
 	}
 }

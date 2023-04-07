@@ -27,8 +27,8 @@ type ResultSetT struct {
 
 type ResultT struct {
 	Status bool       `json:"status"`
-	Data   ResultSetT `json:"data,omitempty""`
-	Error  string     `json:"error,omitempty"`
+	Data   ResultSetT `json:"data"`
+	Error  string     `json:"error"`
 }
 type ResultTErr struct {
 	Status bool   `json:"status"`
@@ -176,6 +176,14 @@ func getMinMax3email(list []email.EmailData) (result [][]email.EmailData) {
 	return result
 }
 
+func changeCountryNameEmailData(m map[string][][]email.EmailData) map[string][][]email.EmailData {
+	result := make(map[string][][]email.EmailData, len(m))
+	for k, v := range m {
+		result[assert.Alpha2Map[k]] = v
+	}
+	return result
+}
+
 func getEmailData(list []email.EmailData) map[string][][]email.EmailData {
 	//func getEmailData(list []email.EmailData) map[string][][]email.EmailData {
 	result := make(map[string][][]email.EmailData)
@@ -188,7 +196,7 @@ func getEmailData(list []email.EmailData) map[string][][]email.EmailData {
 		sorted := getMinMax3email(provider)
 		result[country] = sorted
 	}
-	return result
+	return changeCountryNameEmailData(result)
 }
 
 func getSupportData(list []support.SupportData) []int {
@@ -225,6 +233,15 @@ func getIncidentData(list []incidentData.IncidentData) []incidentData.IncidentDa
 	return list
 }
 
+func sortVoice(list []voice.VoiceData) []voice.VoiceData {
+	result := make([]voice.VoiceData, len(list))
+	for i, data := range list {
+		data.Country = assert.Alpha2Map[data.Country]
+		result[i] = data
+	}
+	return result
+}
+
 func GetResultData() (ResultSetT, error) {
 	resultSMS, errSMS := sms.GetSMSDataSlice(filepath.Join("internal", "data", "sms.data"))
 	if errSMS != nil {
@@ -255,15 +272,15 @@ func GetResultData() (ResultSetT, error) {
 		return ResultSetT{}, errSMS
 	}
 	dataSms := getSMSdata(resultSMS)
+	dataVoice := sortVoice(resultVoice)
 	dataMMS := getMMSdata(resultMMS)
 	dataEmail := getEmailData(resultEmail)
 	dataSupport := getSupportData(resultSupport)
 	dataIncidents := getIncidentData(resultIncident)
-	//return ResultSetT{}, nil
 	return ResultSetT{
 		SMS:       dataSms,
 		MMS:       dataMMS,
-		VoiceCall: resultVoice,
+		VoiceCall: dataVoice,
 		Email:     dataEmail,
 		Billing:   resultBilling,
 		Support:   dataSupport,
