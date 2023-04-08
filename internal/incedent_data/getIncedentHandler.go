@@ -3,7 +3,6 @@ package incidentData
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -34,6 +33,5 @@ func getIncidentStruct(body []byte) []IncidentData {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(list)
 	return list
 }

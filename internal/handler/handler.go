@@ -1,4 +1,4 @@
-package ping
+package handler
 
 import (
 	"encoding/json"
@@ -25,10 +25,9 @@ func New() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		result, _ := json.Marshal(answer)
-		print(result)
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(result))
+		w.Write(result)
 	}
 }

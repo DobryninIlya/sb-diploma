@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/go-chi/chi"
 	"log"
-	"main/internal/ping"
+	"main/internal/handler"
+	"main/internal/json_convertation"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,8 +30,9 @@ func NewApp() *App {
 }
 
 func (a *App) run() {
+	json_convertation.StartBufferCleaner(30) // Устанавливаем жизнь буфера на 30 секунд
 	a.router.Route("/api", func(r chi.Router) {
-		r.Get("/", ping.New())
+		r.Get("/", handler.New())
 	})
 	go func() {
 		fmt.Println("Starting worker")

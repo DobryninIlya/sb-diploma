@@ -15,6 +15,8 @@ import (
 
 const speedSupport = 18
 
+var BufferedDataT ResultSetT
+
 type ResultSetT struct {
 	SMS       [][]sms.SMSData                `json:"sms"`
 	MMS       [][]mms.MMSData                `json:"mms"`
@@ -133,7 +135,7 @@ func getSMSdata(list []sms.SMSData) [][]sms.SMSData {
 
 // В этой функции реализована подготовка к сортировке двух слайсов []MMSData и их последующая
 // соритровка в универсальной функции
-func getMMSdata(list []mms.MMSData) [][]mms.MMSData {
+func getMMSdata(list []mms.MMSData, ch chan [][]mms.MMSData) {
 	resultMMS := replaceCodeOnNameMMS(list)
 	//var genericMessages []msgData
 	genericMessages := make([]msgData, 0, len(resultMMS))
@@ -156,7 +158,8 @@ func getMMSdata(list []mms.MMSData) [][]mms.MMSData {
 		}
 		sliceMMS2[i] = *smsMessage
 	}
-	return [][]mms.MMSData{
+
+	ch <- [][]mms.MMSData{
 		sliceMMS1, // second slice
 		sliceMMS2, //first slice
 	}
@@ -184,8 +187,7 @@ func changeCountryNameEmailData(m map[string][][]email.EmailData) map[string][][
 	return result
 }
 
-func getEmailData(list []email.EmailData) map[string][][]email.EmailData {
-	//func getEmailData(list []email.EmailData) map[string][][]email.EmailData {
+func getEmailData(list []email.EmailData, ch chan map[string][][]email.EmailData) {
 	result := make(map[string][][]email.EmailData)
 	CountryProvider := make(map[string][]email.EmailData)
 	for _, data := range list {
@@ -196,10 +198,10 @@ func getEmailData(list []email.EmailData) map[string][][]email.EmailData {
 		sorted := getMinMax3email(provider)
 		result[country] = sorted
 	}
-	return changeCountryNameEmailData(result)
+	ch <- changeCountryNameEmailData(result)
 }
 
-func getSupportData(list []support.SupportData) []int {
+func getSupportData(list []support.SupportData, ch chan []int) {
 	result := make([]int, 2)
 	hour := time.Now().Hour()
 	if hour < 9 {
@@ -217,11 +219,11 @@ func getSupportData(list []support.SupportData) []int {
 		return result * speedSupport
 	}()
 	result[1] = waitTime
-	return result
+	ch <- result
 
 }
 
-func getIncidentData(list []incidentData.IncidentData) []incidentData.IncidentData {
+func getIncidentData(list []incidentData.IncidentData, ch chan []incidentData.IncidentData) {
 	length := len(list)
 	for i := 0; i < (length - 1); i++ {
 		for j := 0; j < ((length - 1) - i); j++ {
@@ -230,19 +232,22 @@ func getIncidentData(list []incidentData.IncidentData) []incidentData.IncidentDa
 			}
 		}
 	}
-	return list
+	ch <- list
 }
 
-func sortVoice(list []voice.VoiceData) []voice.VoiceData {
+func sortVoice(list []voice.VoiceData, ch chan []voice.VoiceData) {
 	result := make([]voice.VoiceData, len(list))
 	for i, data := range list {
 		data.Country = assert.Alpha2Map[data.Country]
 		result[i] = data
 	}
-	return result
+	ch <- result
 }
 
 func GetResultData() (ResultSetT, error) {
+	if BufferedDataT.Support != nil {
+		return BufferedDataT, nil // Если в буфере есть значение, которое не успело очиститься клинером, то сразу отдаем его
+	}
 	resultSMS, errSMS := sms.GetSMSDataSlice(filepath.Join("internal", "data", "sms.data"))
 	if errSMS != nil {
 		return ResultSetT{}, errSMS
@@ -272,12 +277,29 @@ func GetResultData() (ResultSetT, error) {
 		return ResultSetT{}, errSMS
 	}
 	dataSms := getSMSdata(resultSMS)
-	dataVoice := sortVoice(resultVoice)
-	dataMMS := getMMSdata(resultMMS)
-	dataEmail := getEmailData(resultEmail)
-	dataSupport := getSupportData(resultSupport)
-	dataIncidents := getIncidentData(resultIncident)
-	return ResultSetT{
+	go func() {
+		getSMSdata(resultSMS)
+	}()
+	chanDataVoice := make(chan []voice.VoiceData, 1)
+	sortVoice(resultVoice, chanDataVoice)
+	dataVoice := <-chanDataVoice
+
+	chanDataMMS := make(chan [][]mms.MMSData, 1)
+	getMMSdata(resultMMS, chanDataMMS)
+	dataMMS := <-chanDataMMS
+
+	chanDataEmail := make(chan map[string][][]email.EmailData, 1)
+	getEmailData(resultEmail, chanDataEmail)
+	dataEmail := <-chanDataEmail
+
+	chanDataSupport := make(chan []int, 1)
+	getSupportData(resultSupport, chanDataSupport)
+	dataSupport := <-chanDataSupport
+
+	chanDataIncident := make(chan []incidentData.IncidentData, 1)
+	getIncidentData(resultIncident, chanDataIncident)
+	dataIncidents := <-chanDataIncident
+	data := ResultSetT{
 		SMS:       dataSms,
 		MMS:       dataMMS,
 		VoiceCall: dataVoice,
@@ -285,6 +307,19 @@ func GetResultData() (ResultSetT, error) {
 		Billing:   resultBilling,
 		Support:   dataSupport,
 		Incidents: dataIncidents,
-	}, nil
+	}
+	BufferedDataT = data
+	return data, nil
 
+}
+
+func StartBufferCleaner(second int) {
+	go func() {
+		for {
+			select {
+			case <-time.Tick(time.Second * time.Duration(second)):
+				BufferedDataT = ResultSetT{}
+			}
+		}
+	}()
 }
