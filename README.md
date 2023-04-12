@@ -12,3 +12,4 @@ go run .\cmd\main.go
 ```
 
 Result page in web/index.html . Open to see the result
+
