@@ -2,7 +2,6 @@ package billing
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -14,7 +13,7 @@ func readFile(path string) ([]byte, error) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Println("file does not exist")
+			log.Println("file does not exist")
 			return nil, err
 		}
 	}

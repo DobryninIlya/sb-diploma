@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/go-chi/chi"
 	"log"
 	"main/internal/handler"
@@ -35,12 +34,12 @@ func (a *App) run() {
 		r.Get("/", handler.New())
 	})
 	go func() {
-		fmt.Println("Starting worker")
+		log.Println("Starting worker")
 		log.Fatal(http.ListenAndServe(":8282", a.router))
 
 	}()
 	<-a.done
-	fmt.Println("Exiting")
+	log.Println("Exiting")
 }
 func main() {
 	var app = NewApp()

@@ -2,7 +2,6 @@ package sms
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	assert "main/internal/assertations"
 	"os"
@@ -25,7 +24,7 @@ func readFile(path string) ([]string, error) {
 	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			fmt.Println("file does not exist")
+			log.Println("file does not exist")
 			return nil, err
 		}
 	}

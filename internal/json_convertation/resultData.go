@@ -14,6 +14,7 @@ import (
 )
 
 const speedSupport = 18
+const dataPath = "simulator"
 
 var BufferedDataT ResultSetT
 
@@ -75,7 +76,7 @@ func sortMsgByCountry(list []msgData) []msgData {
 	// Bubble sort v.2 :)
 	length := len(list)
 	for i := 0; i < (length - 1); i++ {
-		for j := (length - 1); j > i; j-- {
+		for j := length - 1; j > i; j-- {
 			if list[j].GetCountry() < list[j-1].GetCountry() {
 				list[j], list[j-1] = list[j-1], list[j]
 			}
@@ -107,7 +108,7 @@ func getSMSdata(list []sms.SMSData) [][]sms.SMSData {
 	resultSMS := replaceCodeOnNameSMS(list)
 	//var genericMessages []msgData
 	genericMessages := make([]msgData, 0, len(resultSMS))
-	for i, _ := range resultSMS {
+	for i := range resultSMS {
 		genericMessages = append(genericMessages, &resultSMS[i])
 	}
 	sortedSMSByProvider := sortMsgByProvider(genericMessages)
@@ -139,7 +140,7 @@ func getMMSdata(list []mms.MMSData, ch chan [][]mms.MMSData) {
 	resultMMS := replaceCodeOnNameMMS(list)
 	//var genericMessages []msgData
 	genericMessages := make([]msgData, 0, len(resultMMS))
-	for i, _ := range resultMMS {
+	for i := range resultMMS {
 		genericMessages = append(genericMessages, &resultMMS[i])
 	}
 	sortedSMSByProvider := sortMsgByProvider(genericMessages)
@@ -248,7 +249,7 @@ func GetResultData() (ResultSetT, error) {
 	if BufferedDataT.Support != nil {
 		return BufferedDataT, nil // Если в буфере есть значение, которое не успело очиститься клинером, то сразу отдаем его
 	}
-	resultSMS, errSMS := sms.GetSMSDataSlice(filepath.Join("internal", "data", "sms.data"))
+	resultSMS, errSMS := sms.GetSMSDataSlice(filepath.Join(dataPath, "sms.data"))
 	if errSMS != nil {
 		return ResultSetT{}, errSMS
 	}
@@ -256,15 +257,15 @@ func GetResultData() (ResultSetT, error) {
 	if errMMS != nil {
 		return ResultSetT{}, errSMS
 	}
-	resultVoice, errVoice := voice.GetVoiceDataSlice(filepath.Join("internal", "data", "voice.data"))
+	resultVoice, errVoice := voice.GetVoiceDataSlice(filepath.Join(dataPath, "voice.data"))
 	if errVoice != nil {
 		return ResultSetT{}, errSMS
 	}
-	resultEmail, errEmail := email.GetEmailDataSlice(filepath.Join("internal", "data", "email.data"))
+	resultEmail, errEmail := email.GetEmailDataSlice(filepath.Join(dataPath, "email.data"))
 	if errEmail != nil {
 		return ResultSetT{}, errSMS
 	}
-	resultBilling, errBilling := billing.GetBillingData(filepath.Join("internal", "data", "billing.data"))
+	resultBilling, errBilling := billing.GetBillingData(filepath.Join(dataPath, "billing.data"))
 	if errBilling != nil {
 		return ResultSetT{}, errSMS
 	}
