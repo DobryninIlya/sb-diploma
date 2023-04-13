@@ -22,11 +22,11 @@ func checkMMSvalid(data MMSData) bool {
 func GetMMS(path string) ([]MMSData, error) {
 	resp, err := http.Get(path)
 	if err != nil {
-		log.Fatal(err)
-		log.Fatal("error has occured, when http-get response sended on ", path)
+		log.Println(err)
+		log.Println("error has occured, when http-get response sended on ", path)
 	}
 	if resp.StatusCode != 200 {
-		log.Fatal("Status code is not 200, error is occured")
+		log.Println("Status code is not 200, error is occured")
 		return nil, errors.New("Status code is not 200, error is occured")
 	}
 
@@ -40,7 +40,7 @@ func getMMSStruct(body []byte) []MMSData {
 	var list []MMSData
 	err := json.Unmarshal(body, &list)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	for i, v := range list {
 		if !checkMMSvalid(v) {

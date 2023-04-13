@@ -11,11 +11,11 @@ import (
 func GetSupport(path string) ([]SupportData, error) {
 	resp, err := http.Get(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return []SupportData{}, err
 	}
 	if resp.StatusCode != 200 {
-		log.Fatal("Status code is not 200, error is occured")
+		log.Println("Status code is not 200, error is occured")
 		var list []SupportData
 		return list, errors.New("Status code is not 200, error is occured")
 	}
@@ -30,7 +30,7 @@ func getSupportStruct(body []byte) ([]SupportData, error) {
 	var list []SupportData
 	err := json.Unmarshal(body, &list)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return list, err
 }

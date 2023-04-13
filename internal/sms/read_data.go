@@ -46,7 +46,7 @@ func readFile(path string) ([]string, error) {
 func GetSMSDataSlice(path string) ([]SMSData, error) {
 	rows, err := readFile(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return nil, err
 	}
 	var result []SMSData

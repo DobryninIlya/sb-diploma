@@ -77,7 +77,7 @@ func getVoiceData(params []string) (VoiceData, error) {
 func GetVoiceDataSlice(path string) ([]VoiceData, error) {
 	rows, err := readFile(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return nil, err
 	}
 	var result []VoiceData

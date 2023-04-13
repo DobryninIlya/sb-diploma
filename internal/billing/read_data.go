@@ -35,7 +35,7 @@ func readFile(path string) ([]byte, error) {
 func GetBillingData(path string) (BillingData, error) {
 	buff, err := readFile(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return BillingData{}, err
 	}
 	if len(buff) != ByteMaskLen {

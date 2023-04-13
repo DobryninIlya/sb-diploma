@@ -12,7 +12,7 @@ func New() func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			answer := conv.ResultTErr{
 				Status: false,
-				Error:  err.Error(),
+				Error:  "Не удалось получить данные. Сервис не доступен",
 			}
 			result, _ := json.Marshal(answer)
 			w.Write(result)
